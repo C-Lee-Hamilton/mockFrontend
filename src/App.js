@@ -20,7 +20,7 @@ function App() {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   const handleLogin = async () => {
     try {
-      const response = await axios.post("/login", { username, password });
+      const response = await axios.post("/auth/login", { username, password });
       console.log("Logged in user:", response.data.user);
       setTest("active");
       setToken(response.data.token);
@@ -49,11 +49,12 @@ function App() {
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post("/register", {
+      const response = await axios.post("/Users/register", {
         username: newUsername,
         password: newPassword,
       });
-      console.log("Registered user:", response.data.user);
+      console.log("Registered user:", newUsername);
+
       // You can show a success message or redirect the user to the login page after successful registration.
     } catch (error) {
       console.error("Registration failed:", error);
