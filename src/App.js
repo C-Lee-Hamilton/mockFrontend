@@ -17,6 +17,7 @@ function App() {
   const [users, setUsers] = useState(null);
   const [token, setToken] = useState(null);
   const [image, setImage] = useState("");
+  const [email, setEmail] = useState("");
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   const handleLogin = async () => {
     try {
@@ -50,10 +51,11 @@ function App() {
   const handleRegister = async () => {
     try {
       const response = await axios.post("/Users/register", {
-        username: newUsername,
+        email: email,
         password: newPassword,
+        username: newUsername,
       });
-      console.log("Registered user:", newUsername);
+      console.log(response.data.user);
 
       // You can show a success message or redirect the user to the login page after successful registration.
     } catch (error) {
@@ -117,6 +119,12 @@ function App() {
         placeholder="interest"
         value={interests}
         onChange={(e) => setInterests(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
       />
       <button onClick={handleEditInterests}>submit edit</button>
       <br></br>
