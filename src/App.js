@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import axios from "axios";
 
@@ -11,21 +11,38 @@ function App() {
   const [arraytest, setArraytest] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [interests, setInterests] = useState("");
-  const [users, setUsers] = useState(null);
   const [token, setToken] = useState(null);
   const [image, setImage] = useState("");
   const [email, setEmail] = useState("");
   const [emailLogin, setEmailLogin] = useState("");
-  const [changePw, setChangePw] = useState("");
   const [oldPw, setOldPw] = useState("");
-  const [message, setMessage] = useState("");
+  const [newPw, setNewPw] = useState("");
   const [profileImage, setProfileImage] = useState("");
+  const [newName, setNewName] = useState("");
+  const [nameholder, setNameholder] = useState("");
+  const [newInterest, setNewInterest] = useState("");
+  const [interests, setInterests] = useState([]);
+  const [user, setUser] = useState(null);
 
-  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  // axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   // const headers = {
   //   Authorization: `Bearer ${token}`,
   // };
+  //refresh
+
+  // useEffect(() => {
+  //   // Check if user is logged in using localStorage
+  //   const storedToken = localStorage.getItem("token");
+  //   const storedUser = localStorage.getItem("user");
+
+  //   if (storedToken && storedUser) {
+  //     setToken(storedToken);
+  //     setUser(JSON.parse(storedUser));
+
+  //     // Set the token in axios headers
+  //     axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+  //   }
+  // }, []);
 
   const handleLogin = async () => {
     try {
@@ -33,16 +50,22 @@ function App() {
         username: username,
         password: password,
         email: emailLogin,
-        token: token,
+        // token: token,
       });
 
       if (rresponse.data.success) {
         console.log("you win");
         console.log(rresponse.data.user);
-        setArraytest(rresponse.data.user.interests);
+        setArraytest(rresponse.data.user.interests[0]);
         setToken(rresponse.data.token);
         setTest("true");
         setProfileImage(rresponse.data.user.image);
+        setNameholder(rresponse.data.user.username);
+        setInterests(rresponse.data.user.interests);
+        // setUser(rresponse.data.user);
+        // localStorage.setItem("user", JSON.stringify(rresponse.data.user));
+        // localStorage.setItem("token", rresponse.data.token);
+        // localStorage.setItem("user", JSON.stringify(rresponse.data.user));
       } else {
         // Login failed
         console.log("Login failed:", rresponse.data.message);
@@ -55,16 +78,29 @@ function App() {
     }
   };
 
-  const logout = () => {
-    setUsers(null);
-    setArraytest("log in");
-    setInterests("");
-    setTest("inactive");
-    setImage("");
-    setUsername("");
-    setPassword("");
-
-    delete axios.defaults.headers.common["Authorization"];
+  const logout = async () => {
+    try {
+      await axios.post("/Auth/logout");
+      console.log("sucess!");
+      setArraytest("");
+      setToken("");
+      setTest("false");
+      setProfileImage("");
+      setImage("");
+      setNameholder("");
+      setUsername("");
+      setEmailLogin("");
+      setPassword("");
+      setNewUsername("");
+      setEmail("");
+      setNewPassword("");
+      setNewPw("");
+      setOldPw("");
+      setImage("");
+      setNewName("");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   const handleRegister = async () => {
@@ -75,56 +111,31 @@ function App() {
         username: newUsername,
       });
       console.log(response.data.user);
-
-      // You can show a success message or redirect the user to the login page after successful registration.
     } catch (error) {
       console.error("Registration failed:", error);
     }
   };
 
-  // const handlePasswordChange = async () => {
-  //   try {
-  //     const response = await axios.post("/Auth/changepassword", {
-  //       oldPassword: oldPw,
-  //       newPassword: changePw,
-  //     });
+  const handlePasswordChange = async () => {
+    try {
+      const response = await axios.post("/Auth/change-password", {
+        oldPassword: oldPw,
+        newPassword: newPw,
+      });
 
-  //     if (response.data.success) {
-  //       setMessage("Password changed successfully.");
-  //       // Clear the input fields
-  //       // setOldPw("");
-  //       // setChangePw("");
-  //     } else {
-  //       setMessage(response.data.message);
-  //     }
-  //   } catch (error) {
-  //     console.error("Password change error:", error);
-  //     setMessage("An error occurred while changing the password.");
-  //   }
-  // };
+      if (response.data.success) {
+        console.log("password changed");
+      } else {
+      }
+    } catch (error) {
+      console.error("Password change error:", error);
+    }
+  };
 
-  // const handleEditInterests = () => {
-  //   // Send a PUT request to update the user's interests
-  //   axios
-  //     .put(`/users/${users.id}`, { interests })
-  //     .then((response) => {
-  //       // Update the user state with the new interests
-  //       setUsers({ ...users, interests: interests });
-  //       setInterests(""); // Clear the interests input field
-  //       setArraytest(response.data.user.interests);
-  //       console.log(response.data.user.interests);
-  //       // Show a success message or update the UI to reflect the changes
-  //     })
-  //     .catch((error) => {
-  //       console.error("Failed to update interests:", error);
-  //       // Show an error message or handle the error
-  //     });
-  // };
-
-  //handle edit change
+  //handle edit image change
   const addImage = async () => {
     axios
-      .post("/Auth/update-user", { imageurl: image })
+      .post("/Auth/update-userImage", { imageurl: image })
       .then((response) => {
         console.log(response.data.user);
         console.log("hello");
@@ -136,6 +147,35 @@ function App() {
 
         console.log(token);
 
+        console.error(error.response.data.user); // Error message from the server
+      });
+  };
+  //handle add an interest
+  const addInterest = async () => {
+    try {
+      const updatedInterests = [...interests, newInterest];
+
+      await axios.post("/Auth/add-interests", { interests: updatedInterests });
+
+      setInterests(updatedInterests); // Update the interests array in state
+      localStorage.setItem("interests", JSON.stringify(updatedInterests)); //store to local
+      setNewInterest(""); // Clear the input field
+    } catch (error) {
+      console.error("Error adding interest:", error);
+    }
+  };
+
+  //handle username change
+
+  const nameChange = async () => {
+    axios
+      .post("/Auth/update-userName", { username: newName })
+      .then((response) => {
+        console.log(response.data.user.username);
+
+        // Updated user object
+      })
+      .catch((error) => {
         console.error(error.response.data.user); // Error message from the server
       });
   };
@@ -187,31 +227,11 @@ function App() {
 
       <button onClick={handleRegister}>Register</button>
       <br></br>
-      {/* <input
-        type="text"
-        placeholder="interest"
-        value={interests}
-        onChange={(e) => setInterests(e.target.value)}
-      /> */}
-      {/* <button onClick={handleEditInterests}>submit edit</button> */}
 
       <br></br>
 
       <img src={profileImage} alt="imagetester" />
-      <br />
-      {/* <input
-        type="password"
-        placeholder="new password"
-        value={changePw}
-        onChange={(e) => setChangePw(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="old password"
-        value={oldPw}
-        onChange={(e) => setOldPw(e.target.value)}
-      /> */}
-      {/* <button onClick={handlePasswordChange}>change password</button> */}
+
       <br />
       <input
         type="text"
@@ -220,6 +240,37 @@ function App() {
         onChange={(e) => setImage(e.target.value)}
       />
       <button onClick={addImage}>Add Image</button>
+      <br />
+      <input
+        type="text"
+        placeholder="Add an interest"
+        value={newInterest}
+        onChange={(e) => setNewInterest(e.target.value)}
+      />
+      <button onClick={addInterest}>Add Interest</button>
+      <br />
+      <input
+        type="text"
+        placeholder={nameholder}
+        value={newName}
+        onChange={(e) => setNewName(e.target.value)}
+      />
+      <button onClick={nameChange}>Change Username</button>
+
+      <br />
+      <input
+        type="password"
+        placeholder="new password"
+        value={newPw}
+        onChange={(e) => setNewPw(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="old password"
+        value={oldPw}
+        onChange={(e) => setOldPw(e.target.value)}
+      />
+      <button onClick={handlePasswordChange}>change password</button>
       <br />
       <button onClick={logout}>logout</button>
     </div>
