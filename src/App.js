@@ -24,7 +24,7 @@ function App() {
   const [interests, setInterests] = useState([]);
   const [user, setUser] = useState(null);
 
-  // axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   // const headers = {
   //   Authorization: `Bearer ${token}`,
   // };
